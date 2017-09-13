@@ -15,9 +15,26 @@ const connection = mysql.createConnection({
   multipleStatements: true
 });
 
+const setupDb = (connection) => {
+  connection.query(
+    `
+      CREATE DATABASE IF NOT EXISTS leavemarker;
+      USE leavemarker;
+      CREATE TABLE IF NOT EXISTS Leaves(
+      leaveId INT PRIMARY KEY AUTO_INCREMENT,
+      reason VARCHAR(255) NOT NULL,
+      start DATETIME NOT NULL,
+      end DATETIME NOT NULL,
+      type ENUM ('FULL', 'HALF') NOT NULL
+    );`, (err, result) => {
+    if (err) throw err;
+    require('./app/routes')(app, connection);
+  })
+}
+
 connection.connect((err) => {
   if(err) throw err;
-  require('./app/routes')(app, connection);
+  setupDb(connection);
   app.listen(port, () => {
     console.log('App is running on ' + port);
   });
